@@ -1,0 +1,9 @@
+[webservers]
+server1 ansible_host=localhost ansible_port=2201 
+
+[databases]
+server2 ansible_host=localhost ansible_port=2202
+
+[all:vars]
+ansible_user=ansible
+ansible_ssh_private_key_file=~/.ssh/id_ed25519

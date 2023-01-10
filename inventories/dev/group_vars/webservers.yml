@@ -1,0 +1,5 @@
+---
+# Переменные для группы webservers в окружении dev
+nginx_port: 80
+nginx_worker_processes: 2
+deployment_environment: development

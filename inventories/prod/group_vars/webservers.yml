@@ -1,0 +1,5 @@
+---
+# Переменные для группы webservers в окружении prod
+nginx_port: 80
+nginx_worker_processes: auto
+deployment_environment: production
