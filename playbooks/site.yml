@@ -1,0 +1,71 @@
+---
+# Главный плейбук для развертывания инфраструктуры
+# Использование: ansible-playbook -i inventories/dev/hosts playbooks/site.yml
+#              ansible-playbook -i inventories/prod/hosts playbooks/site.yml
+
+- name: Развертывание веб-серверов
+  hosts: webservers
+  become: true
+  # Переменные, специфичные для окружения, загружаются из group_vars:
+  # nginx_port, nginx_worker_processes, deployment_environment
+
+  vars:
+    nginx_site_name: "{{ deployment_environment }}-site"
+    nginx_server_name: "{{ inventory_hostname }}"
+
+  roles:
+    - nginx
+
+  tasks:
+    - name: Создание тестовой страницы с информацией об окружении
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Welcome to {{ inventory_hostname }}</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  h1 { color: #333; }
+                  .info { background: #f4f4f4; padding: 20px; border-radius: 5px; }
+                  .env { font-weight: bold; color: {% if deployment_environment == 'production' %}#d32f2f{% else %}#1976d2{% endif %}; }
+              </style>
+          </head>
+          <body>
+              <h1>Welcome to {{ inventory_hostname }}</h1>
+              <div class="info">
+                  <p><strong>Environment:</strong> <span class="env">{{ deployment_environment }}</span></p>
+                  <p><strong>Nginx Port:</strong> {{ nginx_port }}</p>
+                  <p><strong>Worker Processes:</strong> {{ nginx_worker_processes }}</p>
+                  <p><strong>Server Name:</strong> {{ nginx_server_name }}</p>
+              </div>
+          </body>
+          </html>
+        dest: "{{ nginx_root }}/index.html"
+        mode: '0644'
+
+    - name: Вывод информации о развертывании
+      ansible.builtin.debug:
+        msg:
+          - "Развертывание завершено для {{ inventory_hostname }}"
+          - "Окружение: {{ deployment_environment }}"
+          - "Nginx порт: {{ nginx_port }}"
+          - "Worker processes: {{ nginx_worker_processes }}"
+
+- name: Подготовка серверов баз данных
+  hosts: databases
+  become: true
+
+  tasks:
+    - name: Вывод информации о серверах БД
+      ansible.builtin.debug:
+        msg: "Сервер БД {{ inventory_hostname }} готов к настройке"
+
+    - name: Установка базовых пакетов для БД
+      ansible.builtin.package:
+        name:
+          - curl
+          - wget
+          - vim
+        state: present
+      when: ansible_os_family == "Debian"

@@ -1,0 +1,25 @@
+---
+# Плейбук для развертывания nginx
+
+- name: Установка и настройка nginx
+  hosts: webservers
+  become: true
+  roles:
+    - nginx
+
+  tasks:
+    - name: Создание тестовой страницы
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Welcome to {{ inventory_hostname }}</title>
+          </head>
+          <body>
+              <h1>Welcome to {{ inventory_hostname }}</h1>
+              <p>Environment: {{ deployment_environment }}</p>
+          </body>
+          </html>
+        dest: "{{ nginx_root }}/index.html"
+        mode: '0644'
