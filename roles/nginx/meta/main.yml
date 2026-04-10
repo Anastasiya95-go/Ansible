@@ -1,0 +1,11 @@
+---
+# Метаданные роли nginx
+
+galaxy_info:
+  role_name: nginx
+  author: DevOps Team
+  description: Роль для установки и настройки nginx
+  license: MIT
+  min_ansible_version: "2.9"
+
+dependencies: []

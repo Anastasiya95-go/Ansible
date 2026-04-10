@@ -1,0 +1,50 @@
+---
+
+- name: Обновление списка пакетов
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Установка nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Создание директории для конфигурации сайта
+  ansible.builtin.file:
+    path: "{{ nginx_site_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Копирование конфигурации сайта
+  ansible.builtin.template:
+    src: nginx-site.conf.j2
+    dest: "/etc/nginx/sites-available/{{ nginx_site_name }}"
+    mode: '0644'
+  notify: restart nginx
+
+- name: Создание символической ссылки для сайта
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ nginx_site_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ nginx_site_name }}"
+    state: link
+  notify: restart nginx
+
+- name: Удаление дефолтной конфигурации nginx
+  ansible.builtin.file:
+    path: "/etc/nginx/sites-enabled/default"
+    state: absent
+  notify: restart nginx
+
+- name: Проверка конфигурации nginx
+  ansible.builtin.command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0
+
+- name: Запуск nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
